@@ -43,7 +43,6 @@ public interface MovieApi {
                     description = "Erro interno do servidor durante o processamento do arquivo"
             )
     })
-    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<ImportResponse> importCsv(
             @Parameter(
                     description = "Arquivo CSV contendo dados dos filmes",
@@ -51,6 +50,39 @@ public interface MovieApi {
                     content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
             )
             @RequestParam("file") MultipartFile file
+    );
+
+    @Operation(
+            summary = "Análise de intervalos entre prêmios",
+            description = "Analisa os produtores com maior e menor intervalo entre dois prêmios consecutivos " +
+                    "baseado nos dados de uma importação específica. Retorna os produtores que ganharam " +
+                    "prêmios com o menor intervalo (mais rápido) e maior intervalo (maior lacuna) entre vitórias."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Análise de intervalos retornada com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SummarizedAwardsResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "UUID de importação não encontrado"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "UUID inválido fornecido"
+            )
+    })
+    ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(
+            @Parameter(
+                    description = "UUID da importação para análise dos prêmios",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
+            @PathVariable String uuidImport
     );
 
     @Operation(
@@ -67,7 +99,6 @@ public interface MovieApi {
                     )
             )
     })
-    @GetMapping("/import-uuids")
     ResponseEntity<List<String>> getImportUuids();
 
     @Operation(
@@ -88,47 +119,13 @@ public interface MovieApi {
                     description = "UUID de importação não encontrado"
             )
     })
-    @GetMapping("/by-import/{importUuid}")
     ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(
             @Parameter(
                     description = "UUID da importação para buscar os filmes",
                     required = true,
                     example = "550e8400-e29b-41d4-a716-446655440000"
             )
-            @PathVariable String importUuid
+            @PathVariable String uuidImport
     );
 
-    @Operation(
-            summary = "Análise de intervalos entre prêmios",
-            description = "Analisa os produtores com maior e menor intervalo entre dois prêmios consecutivos " +
-                         "baseado nos dados de uma importação específica. Retorna os produtores que ganharam " +
-                         "prêmios com o menor intervalo (mais rápido) e maior intervalo (maior lacuna) entre vitórias."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Análise de intervalos retornada com sucesso",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SummarizedAwardsResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "UUID de importação não encontrado"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "UUID inválido fornecido"
-            )
-    })
-    @GetMapping("/awards")
-    ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(
-            @Parameter(
-                    description = "UUID da importação para análise dos prêmios",
-                    required = true,
-                    example = "550e8400-e29b-41d4-a716-446655440000"
-            )
-            @RequestParam String uuid
-    );
 }

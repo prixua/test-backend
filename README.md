@@ -88,7 +88,7 @@ year;title;studios;producers;winner
 
 ### 📊 Análise de Intervalos Entre Prêmios
 ```http
-GET /api/v1/movies/awards?uuid={uuid-da-importacao}
+GET /api/v1/movies/import/{uuidImport}
 ```
 
 **Resposta:**
@@ -118,11 +118,34 @@ GET /api/v1/movies/awards?uuid={uuid-da-importacao}
 GET /api/v1/movies/import-uuids
 ```
 
-### 🎬 Buscar Filmes por UUID de Importação
-```http
-GET /api/v1/movies/by-import/{uuid}
+**Resposta:**
+```json
+[
+  "550e8400-e29b-41d4-a716-446655440000",
+  "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+]
 ```
 
+### 🎬 Buscar Filmes por UUID de Importação
+```http
+GET /api/v1/movies/by-import/{importUuid}
+```
+
+**Resposta:**
+```json
+[
+  {
+    "id": 1,
+    "year": 1981,
+    "title": "Tarzan, the Ape Man",
+    "studios": "MGM, United Artists",
+    "producers": "John Derek",
+    "winner": false,
+    "importUuid": "550e8400-e29b-41d4-a716-446655440000",
+    "createdAt": "2025-10-02T15:30:00"
+  }
+]
+```
 ## 💾 Banco de Dados
 
 ### H2 Console (Desenvolvimento)
@@ -235,10 +258,6 @@ A API possui tratamento global de exceções com respostas padronizadas:
 }
 ```
 
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
 ## 🆘 Suporte
 
 Em caso de dúvidas ou problemas:
@@ -246,4 +265,3 @@ Em caso de dúvidas ou problemas:
 1. Verifique a documentação Swagger em `http://localhost:8080/swagger-ui.html`
 2. Consulte os logs da aplicação
 3. Abra uma issue no repositório do projeto
-

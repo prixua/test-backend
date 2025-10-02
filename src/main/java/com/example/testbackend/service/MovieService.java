@@ -44,7 +44,7 @@ public class MovieService {
     }
 
     @Transactional(readOnly = true)
-    public List<MovieResponse> findByImportUuid(String importUuid) {
+    public List<MovieResponse> getMoviesByImportUuid(String importUuid) {
         log.debug("Buscando filmes por UUID de importação: {}", importUuid);
 
         List<Movie> movies = movieRepository.findByImportUuid(importUuid);
@@ -132,7 +132,7 @@ public class MovieService {
         }
     }
 
-    public SummarizedAwardsResponse getAwardsByImportUuid(String importUuid) {
+    public SummarizedAwardsResponse getSummarizedAwards(String importUuid) {
         log.debug("Obtendo análise de prêmios para UUID de importação: {}", importUuid);
 
         List<Movie> movies = movieRepository.findByImportUuid(importUuid);

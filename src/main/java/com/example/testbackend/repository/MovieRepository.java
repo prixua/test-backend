@@ -16,6 +16,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     List<Movie> findByImportUuid(String importUuid);
 
 
-    @Query("SELECT DISTINCT m.importUuid FROM Movie m ORDER BY m.createdAt DESC")
+    @Query("SELECT m.importUuid FROM Movie m GROUP BY m.importUuid ORDER BY MAX(m.createdAt) DESC")
     List<String> findDistinctImportUuids();
 }

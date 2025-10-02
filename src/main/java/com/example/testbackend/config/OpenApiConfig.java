@@ -26,12 +26,9 @@ public class OpenApiConfig {
                                    "entre prêmios consecutivos dos produtores.")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("Test Backend Team")
-                                .email("support@testbackend.com")
-                                .url("https://github.com/example/test-backend"))
-                        .license(new License()
-                                .name("MIT License")
-                                .url("https://opensource.org/licenses/MIT"))
+                                .name("Test Backend")
+                                .email("prixua@gmail.com")
+                                .url("https://github.com/prixua/test-backend"))
                 );
     }
 }

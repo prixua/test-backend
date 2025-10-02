@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ public class MovieController implements MovieApi {
     private final MovieService movieService;
 
     @Override
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ImportResponse> importCsv(MultipartFile file) {
         log.info("POST /api/v1/movies/import - importando arquivo CSV: {}", file.getOriginalFilename());
 
@@ -42,26 +44,29 @@ public class MovieController implements MovieApi {
     }
 
     @Override
+    @GetMapping("/import/{uuidImport}/awards")
+    public ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(@PathVariable String uuidImport) {
+        log.info("GET /api/v1/movies/import/{}/awards - obtendo análise de prêmios para UUID: {}", uuidImport, uuidImport);
+
+        SummarizedAwardsResponse awards = movieService.getSummarizedAwards(uuidImport);
+        return ResponseEntity.ok(awards);
+    }
+
+    @Override
+    @GetMapping("/import/uuids")
     public ResponseEntity<List<String>> getImportUuids() {
-        log.info("GET /api/v1/movies/import-uuids - obtendo UUIDs de importação");
+        log.info("GET /api/v1/movies/import/uuids - obtendo UUIDs de importação");
 
         List<String> importUuids = movieService.getImportUuids();
         return ResponseEntity.ok(importUuids);
     }
 
     @Override
-    public ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(String importUuid) {
-        log.info("GET /api/v1/movies/by-import/{} - buscando filmes por UUID", importUuid);
+    @GetMapping("/import/{uuidImport}/list")
+    public ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(@PathVariable String uuidImport) {
+        log.info("GET /api/v1/movies/import/{}/list - buscando filmes por UUID", uuidImport);
 
-        List<MovieResponse> movies = movieService.findByImportUuid(importUuid);
+        List<MovieResponse> movies = movieService.getMoviesByImportUuid(uuidImport);
         return ResponseEntity.ok(movies);
-    }
-
-    @Override
-    public ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(String uuid) {
-        log.info("GET /api/v1/movies/awards - obtendo análise de prêmios para UUID: {}", uuid);
-
-        SummarizedAwardsResponse awards = movieService.getAwardsByImportUuid(uuid);
-        return ResponseEntity.ok(awards);
     }
 }
