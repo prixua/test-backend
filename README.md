@@ -48,6 +48,15 @@ cd test-backend
 ### 3. Acesse a aplicação
 A aplicação estará disponível em: `http://localhost:8080`
 
+### 4. Execução Alternativa com Docker
+Se preferir, você pode executar a aplicação usando Docker diretamente:
+
+```bash
+docker run -it -p 8080:8080 prixua/test-backend:latest
+```
+
+> **Nota:** Esta opção não requer ter Java instalado localmente, apenas Docker.
+
 ## 📚 Documentação da API
 
 ### Swagger UI (Interface Interativa)
