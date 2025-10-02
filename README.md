@@ -97,7 +97,7 @@ year;title;studios;producers;winner
 
 ### 📊 Análise de Intervalos Entre Prêmios
 ```http
-GET /api/v1/movies/import/{uuidImport}
+GET /api/v1/movies/import/{uuidImport}/awards
 ```
 
 **Resposta:**
@@ -124,7 +124,7 @@ GET /api/v1/movies/import/{uuidImport}
 
 ### 📋 Listar UUIDs de Importação
 ```http
-GET /api/v1/movies/import-uuids
+GET /api/v1/movies/import/uuids
 ```
 
 **Resposta:**
@@ -137,7 +137,7 @@ GET /api/v1/movies/import-uuids
 
 ### 🎬 Buscar Filmes por UUID de Importação
 ```http
-GET /api/v1/movies/by-import/{importUuid}
+GET /api/v1/movies/import/{uuidImport}/list
 ```
 
 **Resposta:**
@@ -155,18 +155,6 @@ GET /api/v1/movies/by-import/{importUuid}
   }
 ]
 ```
-## 💾 Banco de Dados
-
-### H2 Console (Desenvolvimento)
-```
-http://localhost:8080/h2-console
-
-# Configurações de conexão:
-# JDBC URL: jdbc:h2:mem:testdb
-# Username: sa
-# Password: password
-```
-
 ## 🔧 Configurações
 
 ### Arquivo de Configuração
@@ -191,7 +179,6 @@ spring:
 - **Aplicação**: `http://localhost:8080`
 - **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 - **OpenAPI JSON**: `http://localhost:8080/api-docs`
-- **H2 Console**: `http://localhost:8080/h2-console`
 - **Health Check**: `http://localhost:8080/actuator/health`
 
 ## 📝 Estrutura do Projeto
@@ -225,12 +212,18 @@ curl -X POST \
 #### 2. Analisar intervalos entre prêmios:
 ```bash
 curl -X GET \
-  'http://localhost:8080/api/v1/movies/awards?uuid=550e8400-e29b-41d4-a716-446655440000'
+  'http://localhost:8080/api/v1/movies/import/550e8400-e29b-41d4-a716-446655440000/awards'
 ```
 
 #### 3. Listar UUIDs de importação:
 ```bash
-curl -X GET http://localhost:8080/api/v1/movies/import-uuids
+curl -X GET http://localhost:8080/api/v1/movies/import/uuids
+```
+
+#### 4. Buscar filmes por UUID de importação:
+```bash
+curl -X GET \
+  'http://localhost:8080/api/v1/movies/import/550e8400-e29b-41d4-a716-446655440000/list'
 ```
 
 ### Exemplo usando Interface Swagger
@@ -263,7 +256,7 @@ A API possui tratamento global de exceções com respostas padronizadas:
   "status": 404,
   "error": "Not Found",
   "message": "Nenhum filme encontrado para o UUID de importação: uuid-inexistente",
-  "path": "/api/v1/movies/awards"
+  "path": "/api/v1/movies/import/{uuid}/awards"
 }
 ```
 
