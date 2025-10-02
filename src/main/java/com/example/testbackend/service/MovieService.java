@@ -39,13 +39,13 @@ public class MovieService {
 
     @Transactional(readOnly = true)
     public List<String> getImportUuids() {
-        log.debug("Getting all import uuids");
+        log.debug("Obtendo todos os UUIDs de importação");
         return movieRepository.findDistinctImportUuids();
     }
 
     @Transactional(readOnly = true)
     public List<MovieResponse> findByImportUuid(String importUuid) {
-        log.debug("Finding movies by import uuid: {}", importUuid);
+        log.debug("Buscando filmes por UUID de importação: {}", importUuid);
 
         List<Movie> movies = movieRepository.findByImportUuid(importUuid);
         return movies.stream()
@@ -54,7 +54,7 @@ public class MovieService {
     }
 
     public ImportResponse importCsvFile(MultipartFile file) {
-        log.info("Starting CSV import for file: {}", file.getOriginalFilename());
+        log.info("Iniciando importação de CSV para o arquivo: {}", file.getOriginalFilename());
 
         String importId = generateImportId();
         int totalRecords = 0;
@@ -70,7 +70,7 @@ public class MovieService {
             // Remove header if exists
             if (!records.isEmpty() && isHeaderRow(records.getFirst())) {
                 records.removeFirst();
-                log.debug("Header row detected and removed");
+                log.debug("Cabeçalho detectado e removido");
             }
 
             totalRecords = records.size();
@@ -82,18 +82,18 @@ public class MovieService {
                     moviesToSave.add(movie);
                     successfulRecords++;
                 } catch (Exception e) {
-                    log.warn("Failed to parse record: {} - Error: {}", String.join(";", record), e.getMessage());
+                    log.warn("Falha ao processar registro: {} - Erro: {}", String.join(";", record), e.getMessage());
                     failedRecords++;
                 }
             }
 
             if (!moviesToSave.isEmpty()) {
                 movieRepository.saveAll(moviesToSave);
-                log.info("Successfully saved {} movies with import ID: {}", moviesToSave.size(), importId);
+                log.info("Salvos com sucesso {} filmes com ID de importação: {}", moviesToSave.size(), importId);
             }
 
         } catch (IOException | CsvException e) {
-            log.error("Error reading CSV file: {}", e.getMessage(), e);
+            log.error("Erro ao ler arquivo CSV: {}", e.getMessage(), e);
             throw new RuntimeException("Erro ao processar arquivo CSV: " + e.getMessage());
         }
 
@@ -133,7 +133,7 @@ public class MovieService {
     }
 
     public SummarizedAwardsResponse getAwardsByImportUuid(String importUuid) {
-        log.debug("Getting awards analysis for import uuid: {}", importUuid);
+        log.debug("Obtendo análise de prêmios para UUID de importação: {}", importUuid);
 
         List<Movie> movies = movieRepository.findByImportUuid(importUuid);
 
@@ -226,7 +226,7 @@ public class MovieService {
                 .filter(interval -> interval.getInterval().equals(maxInterval))
                 .toList();
 
-        log.debug("Found {} min intervals with value {} and {} max intervals with value {}",
+        log.debug("Encontrados {} intervalos mínimos com valor {} e {} intervalos máximos com valor {}",
                  minIntervals.size(), minInterval, maxIntervals.size(), maxInterval);
 
         return SummarizedAwardsResponse.builder()

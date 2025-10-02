@@ -26,7 +26,7 @@ public class MovieController implements MovieApi {
 
     @Override
     public ResponseEntity<ImportResponse> importCsv(MultipartFile file) {
-        log.info("POST /api/v1/movies/import - importing CSV file: {}", file.getOriginalFilename());
+        log.info("POST /api/v1/movies/import - importando arquivo CSV: {}", file.getOriginalFilename());
 
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Arquivo não pode estar vazio");
@@ -43,7 +43,7 @@ public class MovieController implements MovieApi {
 
     @Override
     public ResponseEntity<List<String>> getImportUuids() {
-        log.info("GET /api/v1/movies/import-uuids");
+        log.info("GET /api/v1/movies/import-uuids - obtendo UUIDs de importação");
 
         List<String> importUuids = movieService.getImportUuids();
         return ResponseEntity.ok(importUuids);
@@ -51,7 +51,7 @@ public class MovieController implements MovieApi {
 
     @Override
     public ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(String importUuid) {
-        log.info("GET /api/v1/movies/by-import/{}", importUuid);
+        log.info("GET /api/v1/movies/by-import/{} - buscando filmes por UUID", importUuid);
 
         List<MovieResponse> movies = movieService.findByImportUuid(importUuid);
         return ResponseEntity.ok(movies);
@@ -59,7 +59,7 @@ public class MovieController implements MovieApi {
 
     @Override
     public ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(String uuid) {
-        log.info("GET /api/v1/movies/awards - uuid: {}", uuid);
+        log.info("GET /api/v1/movies/awards - obtendo análise de prêmios para UUID: {}", uuid);
 
         SummarizedAwardsResponse awards = movieService.getAwardsByImportUuid(uuid);
         return ResponseEntity.ok(awards);
