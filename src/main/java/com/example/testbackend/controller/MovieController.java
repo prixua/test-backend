@@ -1,5 +1,6 @@
 package com.example.testbackend.controller;
 
+import com.example.testbackend.controller.api.MovieApi;
 import com.example.testbackend.dto.response.SummarizedAwardsResponse;
 import com.example.testbackend.dto.response.ImportResponse;
 import com.example.testbackend.dto.response.MovieResponse;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,12 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
-public class MovieController {
+public class MovieController implements MovieApi {
 
-    private  final MovieService movieService;
+    private final MovieService movieService;
 
-    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ImportResponse> importCsv(@RequestParam("file") MultipartFile file) {
+    @Override
+    public ResponseEntity<ImportResponse> importCsv(MultipartFile file) {
         log.info("POST /api/v1/movies/import - importing CSV file: {}", file.getOriginalFilename());
 
         if (file.isEmpty()) {
@@ -41,8 +41,7 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
-    @GetMapping("/import-uuids")
+    @Override
     public ResponseEntity<List<String>> getImportUuids() {
         log.info("GET /api/v1/movies/import-uuids");
 
@@ -50,20 +49,19 @@ public class MovieController {
         return ResponseEntity.ok(importUuids);
     }
 
-    @GetMapping("/by-import/{importUuid}")
-    public ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(@PathVariable String importUuid) {
+    @Override
+    public ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(String importUuid) {
         log.info("GET /api/v1/movies/by-import/{}", importUuid);
 
         List<MovieResponse> movies = movieService.findByImportUuid(importUuid);
         return ResponseEntity.ok(movies);
     }
 
-    @GetMapping("/awards")
-    public ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(@RequestParam String uuid) {
+    @Override
+    public ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(String uuid) {
         log.info("GET /api/v1/movies/awards - uuid: {}", uuid);
 
         SummarizedAwardsResponse awards = movieService.getAwardsByImportUuid(uuid);
         return ResponseEntity.ok(awards);
     }
-
 }
