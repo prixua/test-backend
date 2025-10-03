@@ -1,7 +1,6 @@
 package com.example.testbackend.controller.api;
 
 import com.example.testbackend.dto.response.ImportResponse;
-import com.example.testbackend.dto.response.MovieResponse;
 import com.example.testbackend.dto.response.SummarizedAwardsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -79,49 +78,6 @@ public interface MovieApi {
     ResponseEntity<SummarizedAwardsResponse> getSummarizedAwards(
             @Parameter(
                     description = "UUID da importação para análise dos prêmios",
-                    required = true,
-                    example = "550e8400-e29b-41d4-a716-446655440000"
-            )
-            @PathVariable String uuidImport
-    );
-
-    @Operation(
-            summary = "Listar todos os UUIDs de importação",
-            description = "Retorna uma lista com todos os UUIDs de importações realizadas, ordenados pela data de criação (mais recentes primeiro)."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Lista de UUIDs retornada com sucesso",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = String[].class)
-                    )
-            )
-    })
-    ResponseEntity<List<String>> getImportUuids();
-
-    @Operation(
-            summary = "Buscar filmes por UUID de importação",
-            description = "Retorna todos os filmes que foram importados em uma importação específica, identificada pelo UUID."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Lista de filmes retornada com sucesso",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = MovieResponse[].class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "UUID de importação não encontrado"
-            )
-    })
-    ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(
-            @Parameter(
-                    description = "UUID da importação para buscar os filmes",
                     required = true,
                     example = "550e8400-e29b-41d4-a716-446655440000"
             )

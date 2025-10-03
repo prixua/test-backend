@@ -3,7 +3,6 @@ package com.example.testbackend.controller;
 import com.example.testbackend.controller.api.MovieApi;
 import com.example.testbackend.dto.response.SummarizedAwardsResponse;
 import com.example.testbackend.dto.response.ImportResponse;
-import com.example.testbackend.dto.response.MovieResponse;
 import com.example.testbackend.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/movies")
@@ -50,23 +47,5 @@ public class MovieController implements MovieApi {
 
         SummarizedAwardsResponse awards = movieService.getSummarizedAwards(uuidImport);
         return ResponseEntity.ok(awards);
-    }
-
-    @Override
-    @GetMapping("/import/uuids")
-    public ResponseEntity<List<String>> getImportUuids() {
-        log.info("GET /api/v1/movies/import/uuids - obtendo UUIDs de importação");
-
-        List<String> importUuids = movieService.getImportUuids();
-        return ResponseEntity.ok(importUuids);
-    }
-
-    @Override
-    @GetMapping("/import/{uuidImport}/list")
-    public ResponseEntity<List<MovieResponse>> getMoviesByImportUuid(@PathVariable String uuidImport) {
-        log.info("GET /api/v1/movies/import/{}/list - buscando filmes por UUID", uuidImport);
-
-        List<MovieResponse> movies = movieService.getMoviesByImportUuid(uuidImport);
-        return ResponseEntity.ok(movies);
     }
 }

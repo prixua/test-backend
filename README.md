@@ -17,6 +17,7 @@ Uma API REST desenvolvida em Java 21 com Spring Boot 3 para gerenciamento de fil
 ## 📋 Funcionalidades
 
 - ✅ Importação de arquivos CSV com dados de filmes
+- ✅ Carregamento automático de dados iniciais na inicialização
 - ✅ Análise de intervalos entre prêmios consecutivos de produtores
 - ✅ Consulta de filmes por importação específica
 - ✅ API REST completa com documentação Swagger
@@ -45,10 +46,35 @@ cd test-backend
 ./gradlew bootRun
 ```
 
-### 3. Acesse a aplicação
-A aplicação estará disponível em: `http://localhost:8080`
+### 2.1. Executar Testes e Cobertura de Código
 
-### 4. Execução Alternativa com Docker
+#### Executar Todos os Testes
+```bash
+# No Windows
+./gradlew.bat test
+
+# No Linux/Mac
+./gradlew test
+```
+
+#### Executar Testes com Relatório de Cobertura (JaCoCo)
+```bash
+# No Windows
+./gradlew.bat test jacocoTestReport
+
+# No Linux/Mac
+./gradlew test jacocoTestReport
+```
+#### 📊 Relatórios Disponíveis
+
+Após a execução dos testes, os relatórios estarão disponíveis em:
+- **Relatório de Testes HTML**: `build/reports/tests/test/index.html`
+- **Relatório de Cobertura JaCoCo**: `build/reports/jacoco/test/html/index.html`
+- **Resultados XML**: `build/test-results/test/`
+
+> 💡 **Dica:** Use `./gradlew test --continue` para executar todos os testes mesmo se alguns falharem, útil para verificar o status geral da aplicação.
+
+### 3. Execução Alternativa com Docker
 Se preferir, você pode executar a aplicação usando Docker diretamente:
 
 ```bash
@@ -56,6 +82,9 @@ docker run -it -p 8080:8080 prixua/test-backend:latest
 ```
 
 > **Nota:** Esta opção não requer ter Java instalado localmente, apenas Docker.
+
+### 4. Acesse a aplicação
+A aplicação estará disponível em: `http://localhost:8080`
 
 ## 📚 Documentação da API
 
@@ -122,109 +151,11 @@ GET /api/v1/movies/import/{uuidImport}/awards
 }
 ```
 
-### 📋 Listar UUIDs de Importação
-```http
-GET /api/v1/movies/import/uuids
-```
-
-**Resposta:**
-```json
-[
-  "550e8400-e29b-41d4-a716-446655440000",
-  "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-]
-```
-
-### 🎬 Buscar Filmes por UUID de Importação
-```http
-GET /api/v1/movies/import/{uuidImport}/list
-```
-
-**Resposta:**
-```json
-[
-  {
-    "id": 1,
-    "year": 1981,
-    "title": "Tarzan, the Ape Man",
-    "studios": "MGM, United Artists",
-    "producers": "John Derek",
-    "winner": false,
-    "importUuid": "550e8400-e29b-41d4-a716-446655440000",
-    "createdAt": "2025-10-02T15:30:00"
-  }
-]
-```
-## 🔧 Configurações
-
-### Arquivo de Configuração
-As configurações estão em `src/main/resources/application.yml`:
-
-```yaml
-spring:
-  application:
-    name: test-backend
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
-```
-
 ### Portas e URLs
 - **Aplicação**: `http://localhost:8080`
 - **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 - **OpenAPI JSON**: `http://localhost:8080/api-docs`
 - **Health Check**: `http://localhost:8080/actuator/health`
-
-## 📝 Estrutura do Projeto
-
-```
-src/main/java/com/example/testbackend/
-├── config/                 # Configurações (OpenAPI)
-├── controller/             # Controllers REST
-│   └── api/               # Interfaces de documentação
-├── dto/                   # Data Transfer Objects
-│   └── response/          # DTOs de resposta
-├── exception/             # Tratamento de exceções
-├── mapper/                # Mapeadores de entidades
-├── model/                 # Entidades JPA
-├── repository/            # Repositórios de dados
-└── service/               # Lógica de negócio
-```
-
-## 🧪 Testando a API
-
-### Exemplo usando cURL
-
-#### 1. Importar arquivo CSV:
-```bash
-curl -X POST \
-  http://localhost:8080/api/v1/movies/import \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@movielist.csv'
-```
-
-#### 2. Analisar intervalos entre prêmios:
-```bash
-curl -X GET \
-  'http://localhost:8080/api/v1/movies/import/550e8400-e29b-41d4-a716-446655440000/awards'
-```
-
-#### 3. Listar UUIDs de importação:
-```bash
-curl -X GET http://localhost:8080/api/v1/movies/import/uuids
-```
-
-#### 4. Buscar filmes por UUID de importação:
-```bash
-curl -X GET \
-  'http://localhost:8080/api/v1/movies/import/550e8400-e29b-41d4-a716-446655440000/list'
-```
 
 ### Exemplo usando Interface Swagger
 
@@ -259,11 +190,3 @@ A API possui tratamento global de exceções com respostas padronizadas:
   "path": "/api/v1/movies/import/{uuid}/awards"
 }
 ```
-
-## 🆘 Suporte
-
-Em caso de dúvidas ou problemas:
-
-1. Verifique a documentação Swagger em `http://localhost:8080/swagger-ui.html`
-2. Consulte os logs da aplicação
-3. Abra uma issue no repositório do projeto

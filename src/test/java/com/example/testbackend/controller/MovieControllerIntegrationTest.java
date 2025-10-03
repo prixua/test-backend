@@ -1,100 +1,27 @@
 package com.example.testbackend.controller;
 
 import com.example.testbackend.dto.response.ImportResponse;
+import com.example.testbackend.dto.response.ProducerIntervalResponse;
+import com.example.testbackend.dto.response.SummarizedAwardsResponse;
 import com.example.testbackend.model.Movie;
-import com.example.testbackend.repository.MovieRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 
-import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureWebMvc
-@ActiveProfiles("test")
-public class MovieControllerIntegrationTest {
+public class MovieControllerIntegrationTest extends AbstractControllerIntegrationTest {
 
-    private MockMvc mockMvc;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @Autowired
-    private MovieRepository movieRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        movieRepository.deleteAll();
-    }
-
-    @Test
-    @DisplayName("Deve importar arquivo CSV e salvar filmes na base de dados")
-    void shouldImportCsvFileAndSaveMoviesToDatabase() throws Exception {
-        // Given - Carregando arquivo CSV de teste
-        InputStream csvInputStream = getClass().getClassLoader()
-                .getResourceAsStream("mocks/test-movies.csv");
-        assertThat(csvInputStream).isNotNull();
-
-        MockMultipartFile csvFile = new MockMultipartFile(
-                "file",
-                "mocks/test-movies.csv",
-                "text/csv",
-                csvInputStream
-        );
-
-        // When - Fazendo a requisição de importação
-        MvcResult result = mockMvc.perform(multipart("/api/v1/movies/import")
-                        .file(csvFile)
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.uuidImported").exists())
-                .andReturn();
-
-        // Then - Verificando se o UUID foi retornado
-        String responseContent = result.getResponse().getContentAsString();
-        ImportResponse importResponse = objectMapper.readValue(responseContent, ImportResponse.class);
-
-        assertThat(importResponse.getUuidImported()).isNotNull();
-
-        // Verificando se os dados foram salvos na base
-        List<Movie> savedMovies = movieRepository.findByImportUuid(importResponse.getUuidImported());
-
-        // Verificações gerais
-        assertThat(savedMovies).hasSize(32); // Total de filmes no CSV (excluindo header)
-        assertThat(savedMovies).allMatch(movie -> movie.getImportUuid().equals(importResponse.getUuidImported()));
-
-        // Verificando filmes ganhadores
-        List<Movie> winners = savedMovies.stream()
-                .filter(Movie::getWinner)
-                .toList();
-        assertThat(winners).hasSize(6); // Filmes com "yes" na coluna winner
-
-        // Verificando dados específicos de alguns filmes
-        verifySpecificMovieData(savedMovies);
-    }
+    // ========== TESTES DE IMPORTAÇÃO ==========
 
     @Test
     @DisplayName("Deve rejeitar arquivo vazio")
@@ -143,121 +70,59 @@ public class MovieControllerIntegrationTest {
         assertThat(allMovies).isEmpty();
     }
 
+    // ========== TESTES DE ANÁLISE DE PRÊMIOS ==========
+
     @Test
-    @DisplayName("Deve importar múltiplos arquivos com UUIDs diferentes")
-    void shouldImportMultipleFilesWithDifferentUuids() throws Exception {
-        // Given - Primeiro arquivo
-        InputStream csvInputStream1 = getClass().getClassLoader()
-                .getResourceAsStream("mocks/test-movies.csv");
-        MockMultipartFile csvFile1 = new MockMultipartFile(
-                "file",
-                "movies1.csv",
-                "text/csv",
-                csvInputStream1
-        );
+    @DisplayName("Deve retornar erro 404 para UUID inexistente na análise de prêmios")
+    void shouldReturn404ForNonExistentUuidInAwardsAnalysis() throws Exception {
+        // Given - UUID que não existe
+        String nonExistentUuid = "550e8400-e29b-41d4-a716-446655440000";
 
-        // When - Primeira importação
-        MvcResult result1 = mockMvc.perform(multipart("/api/v1/movies/import")
-                        .file(csvFile1))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        ImportResponse response1 = objectMapper.readValue(
-                result1.getResponse().getContentAsString(),
-                ImportResponse.class
-        );
-
-        // Given - Segundo arquivo (mesmo conteúdo, mas deve ter UUID diferente)
-        InputStream csvInputStream2 = getClass().getClassLoader()
-                .getResourceAsStream("mocks/test-movies.csv");
-        MockMultipartFile csvFile2 = new MockMultipartFile(
-                "file",
-                "movies2.csv",
-                "text/csv",
-                csvInputStream2
-        );
-
-        // When - Segunda importação
-        MvcResult result2 = mockMvc.perform(multipart("/api/v1/movies/import")
-                        .file(csvFile2))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        ImportResponse response2 = objectMapper.readValue(
-                result2.getResponse().getContentAsString(),
-                ImportResponse.class
-        );
-
-        // Then - Verificando que os UUIDs são diferentes
-        assertThat(response1.getUuidImported()).isNotEqualTo(response2.getUuidImported());
-
-        // Verificando que ambas as importações foram salvas
-        List<Movie> movies1 = movieRepository.findByImportUuid(response1.getUuidImported());
-        List<Movie> movies2 = movieRepository.findByImportUuid(response2.getUuidImported());
-
-        assertThat(movies1).hasSize(32);
-        assertThat(movies2).hasSize(32);
-        assertThat(movieRepository.count()).isEqualTo(64); // Total de filmes
+        // When & Then
+        mockMvc.perform(get("/api/v1/movies/import/{uuidImport}/awards", nonExistentUuid))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Nenhum filme encontrado para o UUID de importação: " + nonExistentUuid));
     }
 
-    private void verifySpecificMovieData(List<Movie> savedMovies) {
-        // Verificando filme "Can't Stop the Music" (1980)
-        Optional<Movie> canStopMusic = savedMovies.stream()
-                .filter(movie -> "Can't Stop the Music".equals(movie.getTitle()))
-                .findFirst();
+    @Test
+    @DisplayName("Deve validar intervalos específicos com arquivo movielist.csv")
+    void shouldValidateSpecificIntervalsWithMovielistCsv() throws Exception {
+        // Given & When - Importando arquivo movielist.csv
+        MvcResult importResult = importCsvFileAndGetResult("movielist.csv");
+        ImportResponse importResponse = objectMapper.readValue(
+                importResult.getResponse().getContentAsString(),
+                ImportResponse.class
+        );
 
-        assertThat(canStopMusic).isPresent();
-        Movie canStopMusicMovie = canStopMusic.get();
-        assertThat(canStopMusicMovie.getYear()).isEqualTo(1980);
-        assertThat(canStopMusicMovie.getStudios()).isEqualTo("Associated Film Distribution");
-        assertThat(canStopMusicMovie.getProducers()).isEqualTo("Allan Carr");
-        assertThat(canStopMusicMovie.getWinner()).isTrue();
+        // When - Analisando intervalos de prêmios
+        MvcResult analysisResult = mockMvc.perform(get("/api/v1/movies/import/{uuidImport}/awards", importResponse.getUuidImported()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-        // Verificando filme "Inchon" (1982)
-        Optional<Movie> inchon = savedMovies.stream()
-                .filter(movie -> "Inchon".equals(movie.getTitle()))
-                .findFirst();
+        SummarizedAwardsResponse awardsResponse = objectMapper.readValue(
+                analysisResult.getResponse().getContentAsString(),
+                SummarizedAwardsResponse.class
+        );
 
-        assertThat(inchon).isPresent();
-        Movie inchonMovie = inchon.get();
-        assertThat(inchonMovie.getYear()).isEqualTo(1982);
-        assertThat(inchonMovie.getStudios()).isEqualTo("MGM");
-        assertThat(inchonMovie.getProducers()).isEqualTo("Mitsuharu Ishii");
-        assertThat(inchonMovie.getWinner()).isTrue();
+        // Then - Verificando estrutura da resposta
+        assertThat(awardsResponse).isNotNull();
+        assertThat(awardsResponse.getMin()).hasSize(1);
+        assertThat(awardsResponse.getMax()).hasSize(1);
 
-        // Verificando filme sem prêmio "Annie" (1982)
-        Optional<Movie> annie = savedMovies.stream()
-                .filter(movie -> "Annie".equals(movie.getTitle()))
-                .findFirst();
+        // Verificando intervalo mínimo (Joel Silver)
+        ProducerIntervalResponse minInterval = awardsResponse.getMin().getFirst();
+        assertThat(minInterval.getProducer()).isEqualTo("Joel Silver");
+        assertThat(minInterval.getInterval()).isEqualTo(1);
+        assertThat(minInterval.getPreviousWin()).isEqualTo(1990);
+        assertThat(minInterval.getFollowingWin()).isEqualTo(1991);
 
-        assertThat(annie).isPresent();
-        Movie annieMovie = annie.get();
-        assertThat(annieMovie.getYear()).isEqualTo(1982);
-        assertThat(annieMovie.getStudios()).isEqualTo("Columbia Pictures");
-        assertThat(annieMovie.getProducers()).isEqualTo("Ray Stark");
-        assertThat(annieMovie.getWinner()).isFalse();
-
-        // Verificando filme com múltiplos estúdios "Hercules" (1983)
-        Optional<Movie> hercules = savedMovies.stream()
-                .filter(movie -> "Hercules".equals(movie.getTitle()))
-                .findFirst();
-
-        assertThat(hercules).isPresent();
-        Movie herculesMovie = hercules.get();
-        assertThat(herculesMovie.getYear()).isEqualTo(1983);
-        assertThat(herculesMovie.getStudios()).isEqualTo("MGM, United Artists, Cannon Films");
-        assertThat(herculesMovie.getProducers()).isEqualTo("Yoram Globus and Menahem Golan");
-        assertThat(herculesMovie.getWinner()).isFalse();
-
-        // Verificando que todos os filmes têm timestamp de criação
-        assertThat(savedMovies).allMatch(m -> m.getCreatedAt() != null);
-
-        // Verificando anos distintos
-        List<Integer> distinctYears = savedMovies.stream()
-                .map(Movie::getYear)
-                .distinct()
-                .sorted()
-                .toList();
-        assertThat(distinctYears).containsExactly(1980, 1981, 1982, 1983, 1984);
+        // Verificando intervalo máximo (Matthew Vaughn)
+        ProducerIntervalResponse maxInterval = awardsResponse.getMax().getFirst();
+        assertThat(maxInterval.getProducer()).isEqualTo("Matthew Vaughn");
+        assertThat(maxInterval.getInterval()).isEqualTo(13);
+        assertThat(maxInterval.getPreviousWin()).isEqualTo(2002);
+        assertThat(maxInterval.getFollowingWin()).isEqualTo(2015);
     }
 }
